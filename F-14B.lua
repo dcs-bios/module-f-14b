@@ -2,7 +2,7 @@ BIOS.protocol.beginModule("F-14B", 0x1200)
 BIOS.protocol.setExportModuleAircrafts({"F-14B"})
 
 --by WarLord (aka BlackLibrary), ArturDCS, Matchstick and Bullitt
---v 1.8h
+--v 2.1
 
 local inputProcessors = moduleBeingDefined.inputProcessors
 local documentation = moduleBeingDefined.documentation
@@ -26,14 +26,14 @@ local defineString = BIOS.util.defineString
 
 -- remove Arg# Stick 33
 
--- Extra Functions
+----------------------------------------- Extra Functions
 local function defineIndicatorLightMulti1(msg, arg_number, category, description)
 	local value = moduleBeingDefined.memoryMap:allocateInt {
 		maxValue = 1
 	}
 	assert(value.shiftBy ~= nil)
 	moduleBeingDefined.exportHooks[#moduleBeingDefined.exportHooks+1] = function(dev0)
-		if dev0:get_argument_value(arg_number) < 0.4 or dev0:get_argument_value(arg_number) > 0.6 then
+		if dev0:get_argument_value(arg_number) >= 0.4 or dev0:get_argument_value(arg_number) < 0.6 then
 			value:setValue(0)
 		else
 		    value:setValue(1)
@@ -64,7 +64,7 @@ local function defineIndicatorLightMulti2(msg, arg_number, category, description
 	}
 	assert(value.shiftBy ~= nil)
 	moduleBeingDefined.exportHooks[#moduleBeingDefined.exportHooks+1] = function(dev0)
-		if dev0:get_argument_value(arg_number) < 0.8 or dev0:get_argument_value(arg_number) > 0.99 then
+		if dev0:get_argument_value(arg_number) >= 0.8 or dev0:get_argument_value(arg_number) < 0.99 then
 			value:setValue(0)
 		else
 		    value:setValue(1)
@@ -95,7 +95,7 @@ local function defineIndicatorLightLANTTop(msg, arg_number, category, descriptio
 	}
 	assert(value.shiftBy ~= nil)
 	moduleBeingDefined.exportHooks[#moduleBeingDefined.exportHooks+1] = function(dev0)
-		if dev0:get_argument_value(arg_number) < 0.24 or dev0:get_argument_value(arg_number) > 0.49 then
+		if dev0:get_argument_value(arg_number) >= 0.24 or dev0:get_argument_value(arg_number) < 0.49 then
 			value:setValue(0)
 		else
 		    value:setValue(1)
@@ -126,7 +126,7 @@ local function defineIndicatorLightLANT(msg, arg_number, category, description)
 	}
 	assert(value.shiftBy ~= nil)
 	moduleBeingDefined.exportHooks[#moduleBeingDefined.exportHooks+1] = function(dev0)
-		if dev0:get_argument_value(arg_number) < 0.49 or dev0:get_argument_value(arg_number) > 0.54 then
+		if dev0:get_argument_value(arg_number) >= 0.49 or dev0:get_argument_value(arg_number) < 0.55 then
 			value:setValue(0)
 		else
 		    value:setValue(1)
@@ -145,7 +145,7 @@ local function defineIndicatorLightLANT(msg, arg_number, category, description)
 			  mask = value.mask,
 			  shift_by = value.shiftBy,
 			  max_value = 1,
-			  description = "Light is on between 0.49 and 0.53"
+			  description = "Light is on between 0.49 and 0.54"
 			}
 		}
 	}
@@ -157,7 +157,7 @@ local function defineIndicatorLightLANTBottom(msg, arg_number, category, descrip
 	}
 	assert(value.shiftBy ~= nil)
 	moduleBeingDefined.exportHooks[#moduleBeingDefined.exportHooks+1] = function(dev0)
-		if dev0:get_argument_value(arg_number) < 0.55 or dev0:get_argument_value(arg_number) > 0.99 then
+		if dev0:get_argument_value(arg_number) >= 0.55 or dev0:get_argument_value(arg_number) < 0.99 then
 			value:setValue(0)
 		else
 		    value:setValue(1)
@@ -180,6 +180,60 @@ local function defineIndicatorLightLANTBottom(msg, arg_number, category, descrip
 			}
 		}
 	}
+end
+
+local function getHUD_Mode()
+    local hud_m = "1"
+    if GetDevice(0):get_argument_value(1015) == 1 then  --Take Off
+        hud_m = "1"
+    elseif GetDevice(0):get_argument_value(1014) == 1 then  --Cruise  
+        hud_m = "2"
+    elseif GetDevice(0):get_argument_value(1013) == 1 then  --A2A  
+        hud_m = "3"
+    elseif GetDevice(0):get_argument_value(1012) == 1 then  --A2G 
+        hud_m = "4"
+    elseif GetDevice(0):get_argument_value(1011) == 1 then  --Landing  
+        hud_m = "5"    
+	else
+	    hud_m = "1"
+    end
+    return hud_m
+end
+
+local function getSTEER_Mode()
+    local steer_m = "2"
+    if GetDevice(0):get_argument_value(1002) == 1 then  --TACAN
+        steer_m = "1"
+    elseif GetDevice(0):get_argument_value(1003) == 1 then  --DEST 
+        steer_m = "2"
+    elseif GetDevice(0):get_argument_value(1004) == 1 then  --AWL/PCD  
+        steer_m = "3"
+    elseif GetDevice(0):get_argument_value(1005) == 1 then  --Vector
+        steer_m = "4"
+    elseif GetDevice(0):get_argument_value(1006) == 1 then  --Manual  
+        steer_m = "5"    
+	else
+	    steer_m = "2"		
+    end
+    return steer_m
+end
+
+local function getAIRSOURCE_Mode()
+    local airsource_m = "5"
+    if GetDevice(0):get_argument_value(929) == 1 then  --RAM
+        airsource_m = "1"
+    elseif GetDevice(0):get_argument_value(930) == 1 then  --LEFT
+        airsource_m = "2"
+    elseif GetDevice(0):get_argument_value(931) == 1 then  --RIGHT
+        airsource_m = "3"
+    elseif GetDevice(0):get_argument_value(932) == 1 then  --BOTH
+        airsource_m = "4"
+    elseif GetDevice(0):get_argument_value(933) == 1 then  --OFF  
+        airsource_m = "5"    
+	else
+	    airsource_m = "5"		
+    end
+    return airsource_m
 end
 
 --------------------------------- Matchstick --------------------------------- 
@@ -226,57 +280,24 @@ local function get_radio_remote_display(indicatorId,testButtonId)-- Get data fro
 	return retVal
 end
 
-local PLT_UHF_REMOTE_DISP = ""
-local RIO_UHF_REMOTE_DISP = ""
-local PLT_VUHF_REMOTE_DISP = ""
+local HSD_TACAN_RANGE = ""
+local HSD_TACAN_CRS = ""
+local HSD_MAN_CRS = ""
 
 moduleBeingDefined.exportHooks[#moduleBeingDefined.exportHooks+1] = function()
-	if PLT_UHF_REMOTE_DISP == nil then PLT_UHF_REMOTE_DISP = "0000000"
-	else PLT_UHF_REMOTE_DISP = get_radio_remote_display(9,15004) end
-	
-	if RIO_UHF_REMOTE_DISP == nil then RIO_UHF_REMOTE_DISP = "0000000"
-	else RIO_UHF_REMOTE_DISP = get_radio_remote_display(10,405) end
-	
-	if PLT_VUHF_REMOTE_DISP == nil then PLT_VUHF_REMOTE_DISP = "0000000"
-	else PLT_VUHF_REMOTE_DISP = get_radio_remote_display(13,15003) end
+	HSDInd = parse_indication_number_index(1);
+	if HSDInd == nil then HSDInd = "00000" end
+        if getSTEER_Mode()=="1" then
+            HSD_TACAN_RANGE = HSDInd[19]
+            HSD_TACAN_CRS = HSDInd[20]
+			HSD_TACAN_CRSint = tonumber(HSD_TACAN_CRS)
+        elseif getSTEER_Mode()=="5" then
+            HSD_MAN_CRS = HSDInd[16]
+			HSD_MAN_CRSint = tonumber(HSD_MAN_CRS)
+        end
 end
 --------------------------------- Matchstick End ---------------------------------  
 
-local function getHUD_Mode()
-    local hud_m = "1"
-    if GetDevice(0):get_argument_value(1015) == 1 then  --Take Off
-        hud_m = "1"
-    elseif GetDevice(0):get_argument_value(1014) == 1 then  --Cruise  
-        hud_m = "2"
-    elseif GetDevice(0):get_argument_value(1013) == 1 then  --A2A  
-        hud_m = "3"
-    elseif GetDevice(0):get_argument_value(1012) == 1 then  --A2G 
-        hud_m = "4"
-    elseif GetDevice(0):get_argument_value(1011) == 1 then  --Landing  
-        hud_m = "5"    
-	else
-	    hud_m = "1"
-    end
-    return hud_m
-end
-
-local function getSTEER_Mode()
-    local steer_m = "2"
-    if GetDevice(0):get_argument_value(1002) == 1 then  --TACAN
-        steer_m = "1"
-    elseif GetDevice(0):get_argument_value(1003) == 1 then  --DEST 
-        steer_m = "2"
-    elseif GetDevice(0):get_argument_value(1004) == 1 then  --AWL/PCD  
-        steer_m = "3"
-    elseif GetDevice(0):get_argument_value(1005) == 1 then  --Vector
-        steer_m = "4"
-    elseif GetDevice(0):get_argument_value(1006) == 1 then  --Manual  
-        steer_m = "5"    
-	else
-	    steer_m = "2"		
-    end
-    return steer_m
-end
 ----------------------------------------- BIOS-Profile  
 
 -- Hydraulics
@@ -464,8 +485,8 @@ defineToggleSwitch("RIO_TACAN_CMD_BUTTON", 47, 3325, 135, "TACAN", "RIO TACAN CM
 -- TACAN Pilot Panel  (TACAN PANEL)
 defineTumb("PLT_TACAN_MODE", 47, 3326, 2041, 0.25, {0, 1}, nil, false, "TACAN", "PILOT TACAN Mode")
 definePotentiometer("PLT_TACAN_VOLUME", 47, 3328, 2036, {0, 1}, "TACAN", "PILOT TACAN Volume")
-defineMultipositionSwitch("PLT_TACAN_MODE_NORMAL_INV", 47, 3335, 2042, 2, 2, "TACAN", "PILOT TACAN Mode Normal/Inverse")
-defineMultipositionSwitch("PLT_TACAN_CHANNEL", 47, 3336, 2043, 2, 2, "TACAN", "PILOT TACAN Channel XY")
+defineTumb("PLT_TACAN_MODE_NORMAL_INV", 47, 3335, 2042, 2, {-1, 1}, nil, false, "TACAN", "PILOT TACAN Mode Normal/Inverse")
+defineTumb("PLT_TACAN_CHANNEL", 47, 3336, 2043, 2, {-1, 1}, nil, false, "TACAN", "PILOT TACAN Channel XY")
 definePushButton("PLT_TACAN_BIT", 47, 3334, 2115, "TACAN", "PILOT TACAN Bit")
 defineTumb("PLT_TACAN_DIAL_TENS", 47, 3330, 8888, 1/12, {0, 1}, nil, false, "TACAN", "PILOT TACAN Channel Wheel (Tens)")
 defineTumb("PLT_TACAN_DIAL_ONES", 47, 3332, 8889, 1/9, {0, 1}, nil, false, "TACAN", "PILOT TACAN Channel Lever (Ones)")
@@ -1390,7 +1411,7 @@ defineFloat("PLT_FUEL_BINGO_1K", 6021, {0, 1}, "Gauges", "PILOT Fuel Bingo 1000"
 defineFloat("PLT_FUEL_BINGO_100", 6022, {0, 1}, "Gauges", "PILOT Fuel Bingo 100")
 defineFloat("PLT_FUEL_BINGO_10", 6023, {0, 1}, "Gauges", "PILOT Fuel Bingo 10")
 defineFloat("PLT_FUEL_BINGO_1", 6024, {0, 1}, "Gauges", "PILOT Fuel Bingo 1")
-defineFloat("PLT_AHRS_LAT_DIAL", 6500, {0, 1}, "Gauges", "PILOT Compass LAT Correction Dial")  --(COMP Panel)
+defineFloat("PLT_AHRS_LAT_DIAL", 1026, {0, 1}, "Gauges", "PILOT Compass LAT Correction Dial")  --(COMP Panel)
 defineFloat("PLT_ACM_TURN_IND", 6501, {-1, 1}, "Gauges", "PILOT ACM Turn Indicator")
 defineFloat("PLT_ACM_SLIP_BALL", 6500, {-1, 1}, "Gauges", "PILOT ACM Slip Ball")
 defineFloat("PLT_COMPBALL_HORIZONTAL", 6502, {0, 1}, "Gauges", "PILOT Compassball Horizontal")
@@ -1562,7 +1583,7 @@ defineFloat("RIO_COMP_ROLLER2", 706, {0, 1}, "Gauges", "RIO Compass Roller 2")
 defineFloat("RIO_COMP_ROLLER3", 707, {0, 1}, "Gauges", "RIO Compass Roller 3")
 defineFloat("RIO_DDD_RANGE_ROLLER", 6100, {0, 1}, "Gauges", "RIO DDD Range Roller")
 defineFloat("RIO_TID_SRC_ROLLER", 6101, {0, 1}, "Gauges", "RIO TID Readout SRC Roller")
-defineFloat("RIO_DDD_RADAR_MODE", 6102, {0, 1}, "Gauges", "RIO DDD Raadar Mode Gauge")
+defineFloat("RIO_DDD_RADAR_MODE", 6102, {0, 1}, "Gauges", "RIO DDD Radar Mode Gauge")
 defineFloat("RIO_TID_STEER_ROLLER", 6103, {0, 1}, "Gauges", "RIO TID Steering Roller")
 defineFloat("RIO_RECORD_MIN_HI", 11600, {0, 1}, "Gauges", "RIO Record Minutes HI")
 defineFloat("RIO_RECORD_MIN_MED", 11601, {0, 1}, "Gauges", "RIO Record Minutes MED")
@@ -1570,11 +1591,21 @@ defineFloat("RIO_RECORD_MIN_LOW", 11602, {0, 1}, "Gauges", "RIO Record Minutes L
 
 defineFloat("CANOPY_POS", 403, {0, 1}, "Gauges", "Canopy Position")
 
-defineString("PLT_UHF_REMOTE_DISP", function() return PLT_UHF_REMOTE_DISP end, 7, "UHF 1", "PILOT UHF ARC-159 Radio Remote Display")  
-defineString("RIO_UHF_REMOTE_DISP", function() return RIO_UHF_REMOTE_DISP end, 7, "UHF 1", "RIO UHF ARC-159 Radio Remote Display")  
-defineString("PLT_VUHF_REMOTE_DISP", function() return PLT_VUHF_REMOTE_DISP end, 7, "VUHF", "PILOT VHF/UHF ARC-182 Radio Remote Display")
+defineString("PLT_UHF_REMOTE_DISP", function() return get_radio_remote_display(9, 15004) or "0000000" end, 7, "UHF 1", "PILOT UHF ARC-159 Radio Remote Display")  
+defineString("RIO_UHF_REMOTE_DISP", function() return get_radio_remote_display(10,405) or "0000000" end, 7, "UHF 1", "RIO UHF ARC-159 Radio Remote Display")  
+defineString("PLT_VUHF_REMOTE_DISP", function() return get_radio_remote_display(13,15003) or "0000000" end, 7, "VUHF", "PILOT VHF/UHF ARC-182 Radio Remote Display")	
 defineString("PLT_HUD_MODE", getHUD_Mode, 1, "Display", "PILOT HUD Mode (string)")  
 defineString("PLT_STEER_MODE", getSTEER_Mode, 1, "Display", "PILOT STEER Mode (string)")
+defineString("PLT_AIR_SOURCE_MODE", getAIRSOURCE_Mode, 1, "Display", "PILOT Air Source Mode (string)")
+defineString("HSD_TACAN_RANGE_S", function() return HSD_TACAN_RANGE end, 5, "HSD", "HSD TACAN Range Display (string)")
+defineString("HSD_TACAN_CRS_S", function() return HSD_TACAN_CRS  end, 3, "HSD", "HSD TACAN Course Display (string)")
+defineString("HSD_MAN_CRS_S", function() return HSD_MAN_CRS  end, 3, "HSD", "HSD MAN Course Display (string)")
+defineIntegerFromGetter("HSD_TACAN_CRS", function() return HSD_TACAN_CRSint  end, 360, "HSD", "HSD TACAN Course Display")
+defineIntegerFromGetter("HSD_MAN_CRS", function() return HSD_MAN_CRSint  end, 360, "HSD", "HSD MAN Course Display")
+
+defineToggleSwitch("PLT_HUDCAM", 11, 3756, 3490, "Cockpit Mechanics", "PILOT Hide Guncam")
+definePotentiometer("RIO_TCS_TRIM_AZI", 37, 3750, 85, {0, 1}, "TCS", "RIO TCS Trim Azimuth")
+definePotentiometer("RIO_TCS_TRIM_ELE", 37, 3751, 86, {0, 1}, "TCS", "RIO TCS Trim Elevation")
 
 --Externals
 defineIntegerFromGetter("EXT_SPEED_BRAKE_RIGHT", function()
@@ -1589,25 +1620,33 @@ defineIntegerFromGetter("EXT_SPEED_BRAKE_TOP", function()
 	return math.floor(LoGetAircraftDrawArgumentValue(400)*65535)
 end, 65535, "External Aircraft Model", "Top Speed Brake")
 
+defineIntegerFromGetter("EXT_REFUEL_PROBE", function()
+	return math.floor(LoGetAircraftDrawArgumentValue(22)*65535)
+end, 65535, "External Aircraft Model", "Fuel Probe")
+
 defineIntegerFromGetter("EXT_REFUEL_PROBE_LIGHT", function()
 	if LoGetAircraftDrawArgumentValue(610) > 0 then return 1 else return 0 end
-end, 1, "External Aircraft Model", "Refuel Probe Light")
+end, 1, "External Aircraft Model", "Refuel Probe Light (red)")
 
 defineIntegerFromGetter("EXT_POSITION_LIGHTS_WINGS", function()
 	if LoGetAircraftDrawArgumentValue(611) > 0 then return 1 else return 0 end
-end, 1, "External Aircraft Model", "Position Lights Wings")
+end, 1, "External Aircraft Model", "Position Lights Wings (red/green)")
 
 defineIntegerFromGetter("EXT_POSITION_LIGHTS_BODY", function()
 	if LoGetAircraftDrawArgumentValue(612) > 0 then return 1 else return 0 end
-end, 1, "External Aircraft Model", "Position Lights Body")
+end, 1, "External Aircraft Model", "Position Lights Body (red/green)")
 
 defineIntegerFromGetter("EXT_POSITION_LIGHT_TAIL", function()
 	if LoGetAircraftDrawArgumentValue(613) > 0 then return 1 else return 0 end
-end, 1, "External Aircraft Model", "Tail Position Light")
+end, 1, "External Aircraft Model", "Tail Position Light (white)")
+
+defineIntegerFromGetter("EXT_POSITION_LIGHT_CHIN", function()
+	if LoGetAircraftDrawArgumentValue(614) > 0 then return 1 else return 0 end
+end, 1, "External Aircraft Model", "Chinpod Position Light (red)")
 
 defineIntegerFromGetter("EXT_FORMATION_LIGHTS", function()
 	return math.floor(LoGetAircraftDrawArgumentValue(200)*65535)
-end, 65535, "External Aircraft Model", "Formation Lights")
+end, 65535, "External Aircraft Model", "Formation Lights (yellow green)")
 
 defineIntegerFromGetter("EXT_ANTI_COL", function()
 	if LoGetAircraftDrawArgumentValue(620) > 0 then return 1 else return 0 end
